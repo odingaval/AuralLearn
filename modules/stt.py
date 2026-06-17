@@ -50,11 +50,13 @@ if (!SpeechRecognition) {
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         resultEl.value = transcript;
+        statusEl.innerText = 'Processing...';
 
-        // Push transcript to Streamlit via a hidden form submit
-        const form = document.getElementById('stt-form');
-        document.getElementById('stt-hidden-input').value = transcript;
-        form.submit();
+        // Navigate the parent Streamlit page so query params include the transcript.
+        // Using window.parent ensures we update the top-level page, not just the iframe.
+        const url = new URL(window.parent.location.href);
+        url.searchParams.set('transcript', transcript);
+        window.parent.location.href = url.toString();
     };
 
     recognition.onerror = (event) => {
@@ -84,13 +86,8 @@ if (!SpeechRecognition) {
   <textarea id="stt-result" rows="2"
     style="width:90%; margin-top:8px; font-size:1rem; border-radius:8px;
            padding:8px; border:1px solid #444; background:#111; color:#eee;"
-    placeholder="Your speech will appear here…" readonly></textarea>
+    placeholder="Your speech will appear here..." readonly></textarea>
 </div>
-
-<!-- Hidden form to pass transcript back to Streamlit query params -->
-<form id="stt-form" method="GET" style="display:none;">
-  <input id="stt-hidden-input" name="transcript" value="" />
-</form>
 """
 
 
