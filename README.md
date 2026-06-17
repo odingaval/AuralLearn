@@ -87,9 +87,18 @@ And wire together the flow:
 - LLM/TTS/STT parts require external services and packages.
 - `llm.py` is strict about returning valid JSON; if the model ever includes extra text, `_parse_json` attempts to recover.
 
-## Next steps (recommended)
+## Next steps (now that it’s wired)
 
-- Add `app.py` (Streamlit) and a `requirements.txt`
-- Add local dev docs (env setup + `streamlit run app.py` command)
-- Add basic error handling + UI states (listening, generating, playing audio)
+- Install dependencies: `pip install -r requirements.txt`
+- Set `ANTHROPIC_API_KEY` in your environment
+- Run: `streamlit run app.py`
+
+## Notes
+
+This repo previously contained only modules. It now includes a basic Streamlit `app.py` that connects:
+- `modules/stt.py` (STT UI)
+- `modules/intent.py` (intent detection)
+- `modules/llm.py` (Claude generation)
+- `modules/tts.py` (audio playback)
+
 
