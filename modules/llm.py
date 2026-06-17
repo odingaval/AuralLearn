@@ -26,7 +26,6 @@ Output ONLY valid JSON (no extra text, no markdown):
   "speech": "<Hinglish explanation to be read aloud>",
   "visual": {
     "title": "<short topic title>",
-    "emoji": "<single relevant emoji>",
     "points": ["<point 1>", "<point 2>", "<point 3>"],
     "analogy": "<one-line relatable Indian analogy>"
   }
