@@ -22,7 +22,7 @@ SPEECH_RECOGNITION_JS = """
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if (!SpeechRecognition) {
-    document.getElementById('stt-status').innerText = '❌ Your browser does not support Speech Recognition. Please use Chrome or Edge.';
+    document.getElementById('stt-status').innerText = 'Your browser does not support Speech Recognition. Please use Chrome or Edge.';
 } else {
     const recognition = new SpeechRecognition();
     recognition.lang = 'hi-IN';          // Hindi — also picks up Hinglish well
@@ -43,8 +43,8 @@ if (!SpeechRecognition) {
         }
         recognition.start();
         isListening = true;
-        btn.innerText = '⏹ Stop Listening';
-        statusEl.innerText = '🎙 Listening…';
+        btn.innerText = 'Stop Listening';
+        statusEl.innerText = 'Listening...';
     });
 
     recognition.onresult = (event) => {
@@ -58,14 +58,14 @@ if (!SpeechRecognition) {
     };
 
     recognition.onerror = (event) => {
-        statusEl.innerText = '⚠️ Error: ' + event.error;
+        statusEl.innerText = 'Error: ' + event.error;
         isListening = false;
-        btn.innerText = '🎙 Start Listening';
+        btn.innerText = 'Start Listening';
     };
 
     recognition.onend = () => {
         isListening = false;
-        btn.innerText = '🎙 Start Listening';
+        btn.innerText = 'Start Listening';
         statusEl.innerText = 'Click to speak again.';
     };
 }
@@ -76,7 +76,7 @@ if (!SpeechRecognition) {
     style="font-size:1.4rem; padding:14px 28px; border-radius:12px;
            background:#FF4B4B; color:white; border:none; cursor:pointer;
            box-shadow:0 4px 15px rgba(255,75,75,0.4);">
-    🎙 Start Listening
+    Start Listening
   </button>
   <p id="stt-status" style="margin-top:10px; color:#aaa; font-size:0.9rem;">
     Click the button and speak in Hindi or Hinglish.
