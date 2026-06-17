@@ -1,6 +1,6 @@
 """
 intent.py — Classify teacher's spoken command into EXPLAIN or QUIZ mode.
-Supports Hinglish (Hindi + English) keywords.
+Supports Hinglish (Hindi + English) keywords for both explain and quiz triggers.
 """
 
 import re
