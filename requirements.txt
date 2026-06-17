@@ -1,0 +1,7 @@
+streamlit>=1.33
+anthropic>=0.26.0
+streamlit-components-v1>=0.1.0
+edge-tts>=6.1.6
+gTTS>=2.5.1
+openai>=1.0.0
+
