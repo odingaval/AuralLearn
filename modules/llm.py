@@ -94,7 +94,7 @@ def explain_concept(topic: str) -> dict[str, Any]:
 
     Returns dict with keys:
         speech  → str (Hinglish explanation)
-        visual  → dict (title, emoji, points[], analogy)
+        visual  → dict (title, points[], analogy)
     """
     client = _get_client()
     user_msg = f"Explain the concept of '{topic}' to grade 6-10 students in Hinglish."
