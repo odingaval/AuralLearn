@@ -9,7 +9,7 @@ AuralLearn is a small prototype for an **audio-first classroom assistant**:
   - or an MCQ quiz (exactly *N* questions)
 - The app can read results back using Text-to-Speech (TTS)
 
-> Current repo status: this folder contains **module code only** (`modules/`). There is **no Streamlit app entrypoint** (e.g., `app.py` / `streamlit_app.py`) in the repo root.
+> Current repo status: this folder contains both `app.py` (Streamlit entry point) and the `modules/` package. The UI uses no emojis for a clean, professional appearance.
 
 ## Project Structure
 
@@ -60,8 +60,13 @@ Uses Anthropic Claude and forces **ONLY valid JSON** responses.
 
 ## Dependencies
 
-This repo currently does not ship a `requirements.txt` or similar manifest.
-Based on the modules, you’ll likely need:
+Install all dependencies from `requirements.txt`:
+
+```bash
+pip install -r requirements.txt
+```
+
+Packages used:
 - `streamlit` (for `stt.py`)
 - `anthropic` (for `llm.py`)
 - `edge-tts` (for `tts.py`)
