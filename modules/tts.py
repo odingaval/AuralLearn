@@ -4,6 +4,7 @@ Falls back to gTTS if edge-tts is unavailable.
 """
 
 import asyncio
+import concurrent.futures
 import os
 import tempfile
 from pathlib import Path
@@ -29,11 +30,14 @@ async def _edge_tts_to_file(text: str, voice: str, output_path: str) -> None:
 def speak_edge(text: str, voice: str = DEFAULT_VOICE) -> str:
     """
     Convert text → MP3 using edge-tts.
+    Runs in a thread pool so asyncio.run() gets a fresh event loop,
+    avoiding conflicts with Streamlit's own running event loop.
     Returns the path to the saved MP3 file.
     """
     tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
     tmp.close()
-    asyncio.run(_edge_tts_to_file(text, voice, tmp.name))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        pool.submit(asyncio.run, _edge_tts_to_file(text, voice, tmp.name)).result()
     return tmp.name
 
 
