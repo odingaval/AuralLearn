@@ -1,24 +1,25 @@
 """
-llm.py — Ollama local LLM integration with Hinglish prompts.
-Handles EXPLAIN and QUIZ intent responses using a locally running model.
+llm.py — Hugging Face Inference API integration with Hinglish prompts.
+Handles EXPLAIN and QUIZ intent responses using a free HF-hosted model.
 """
 
 import json
 import re
 import os
 from typing import Any
-import ollama
+from huggingface_hub import InferenceClient
 
 # ── Model config ───────────────────────────────────────────────────────────────
 
-# Change this to match whatever model you have installed (run `ollama list`)
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:2b")
+# Default model — works well for JSON-structured Hinglish output.
+# Override via HF_MODEL env var in your HF Space secrets.
+HF_MODEL = os.getenv("HF_MODEL", "mistralai/Mistral-7B-Instruct-v0.3")
 
 # ── System prompts ─────────────────────────────────────────────────────────────
 
 SYSTEM_EXPLAIN = """
 You are a classroom teaching assistant for a Haryana government school.
-Students are in grades 6–10 and speak Hinglish (Hindi–English mix).
+Students are in grades 6-10 and speak Hinglish (Hindi-English mix).
 
 When asked to explain a concept:
 - Respond in natural Hinglish (mix Hindi and English naturally)
@@ -39,7 +40,7 @@ Output ONLY valid JSON (no extra text, no markdown):
 
 SYSTEM_QUIZ = """
 You are a classroom teaching assistant for a Haryana government school.
-Students are in grades 6–10 and speak Hinglish (Hindi–English mix).
+Students are in grades 6-10 and speak Hinglish (Hindi-English mix).
 
 When asked to create a quiz:
 - Generate exactly N MCQ questions on the given topic
@@ -69,43 +70,44 @@ def _parse_json(raw: str) -> dict[str, Any]:
     Robustly extract and parse JSON from LLM response.
     Handles extra whitespace, markdown fences, etc.
     """
-    # Strip markdown code fences if present
     raw = re.sub(r"```(?:json)?", "", raw).strip("` \n")
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
-        # Try to find JSON object in the response
         match = re.search(r"\{.*\}", raw, re.DOTALL)
         if match:
             return json.loads(match.group())
         raise ValueError(f"Could not parse JSON from LLM response:\n{raw}")
 
 
-# ── Ollama call helper ─────────────────────────────────────────────────────────
+# ── HF Inference call helper ───────────────────────────────────────────────────
 
 def _chat(system_prompt: str, user_msg: str, max_tokens: int = 600) -> str:
     """
-    Send a chat request to the local Ollama server.
-    Raises a clear error if Ollama is not running.
+    Send a chat request to the Hugging Face Inference API.
+    Uses HF_TOKEN env var if set (required for gated/private models).
     """
+    token = os.getenv("HF_TOKEN") or None  # None = anonymous (works for public models)
     try:
-        response = ollama.chat(
-            model=OLLAMA_MODEL,
+        client = InferenceClient(model=HF_MODEL, token=token)
+        response = client.chat_completion(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_msg},
             ],
-            options={"num_predict": max_tokens},
+            max_tokens=max_tokens,
         )
-        return response["message"]["content"]
+        return response.choices[0].message.content
     except Exception as e:
         error_str = str(e).lower()
-        if "connection" in error_str or "refused" in error_str:
-            raise ConnectionError(
-                "Cannot connect to Ollama. Make sure it's running:\n"
-                "  ollama serve\n"
-                f"Then check your model is installed: ollama list\n"
-                f"Current model: {OLLAMA_MODEL}"
+        if "401" in error_str or "unauthorized" in error_str:
+            raise PermissionError(
+                "HF model requires authentication.\n"
+                "Set HF_TOKEN in your Space secrets (Settings > Variables and secrets)."
+            ) from e
+        if "503" in error_str or "loading" in error_str:
+            raise RuntimeError(
+                f"Model '{HF_MODEL}' is loading on HF servers. Wait 30s and try again."
             ) from e
         raise
 
@@ -114,11 +116,11 @@ def _chat(system_prompt: str, user_msg: str, max_tokens: int = 600) -> str:
 
 def explain_concept(topic: str) -> dict[str, Any]:
     """
-    Ask the local model to explain a concept in Hinglish.
+    Ask the HF model to explain a concept in Hinglish.
 
     Returns dict with keys:
-        speech  → str (Hinglish explanation)
-        visual  → dict (title, points[], analogy)
+        speech  -> str (Hinglish explanation)
+        visual  -> dict (title, points[], analogy)
     """
     user_msg = f"Explain the concept of '{topic}' to grade 6-10 students in Hinglish."
     raw = _chat(SYSTEM_EXPLAIN, user_msg, max_tokens=600)
@@ -127,10 +129,10 @@ def explain_concept(topic: str) -> dict[str, Any]:
 
 def generate_quiz(topic: str, n: int = 5) -> dict[str, Any]:
     """
-    Ask the local model to generate N MCQs on a topic in Hinglish.
+    Ask the HF model to generate N MCQs on a topic in Hinglish.
 
     Returns dict with key:
-        questions → list of dicts (q, options[], answer, explanation, speech)
+        questions -> list of dicts (q, options[], answer, explanation, speech)
     """
     user_msg = (
         f"Create exactly {n} MCQ questions on the topic '{topic}' "

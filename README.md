@@ -1,6 +1,17 @@
+---
+title: AuralLearn
+emoji: 🎧
+colorFrom: purple
+colorTo: blue
+sdk: streamlit
+sdk_version: "1.33"
+app_file: app.py
+pinned: false
+---
+
 # 🎧 AuralLearn
 
-AuralLearn is an **audio-first classroom assistant** built for government schools in Haryana. It lets teachers speak in Hindi or Hinglish to instantly explain concepts or generate quizzes — all running **100% offline** on a local machine, with no API keys or internet required.
+AuralLearn is an **audio-first classroom assistant** built for government schools in Haryana. It lets teachers speak in Hindi or Hinglish to instantly explain concepts or generate quizzes — powered by the Hugging Face Inference API (free, no local GPU needed).
 
 ## How It Works
 
