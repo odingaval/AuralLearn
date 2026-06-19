@@ -1,13 +1,18 @@
 """
-llm.py — Claude API integration with Hinglish prompts.
-Handles EXPLAIN and QUIZ intent responses.
+llm.py — Ollama local LLM integration with Hinglish prompts.
+Handles EXPLAIN and QUIZ intent responses using a locally running model.
 """
 
 import json
 import re
 import os
-import anthropic
 from typing import Any
+import ollama
+
+# ── Model config ───────────────────────────────────────────────────────────────
+
+# Change this to match whatever model you have installed (run `ollama list`)
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:2b")
 
 # ── System prompts ─────────────────────────────────────────────────────────────
 
@@ -57,16 +62,7 @@ Output ONLY valid JSON (no extra text, no markdown):
 """.strip()
 
 
-# ── Client ─────────────────────────────────────────────────────────────────────
-
-def _get_client() -> anthropic.Anthropic:
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise ValueError(
-            "ANTHROPIC_API_KEY not set. Add it to your .env file or environment."
-        )
-    return anthropic.Anthropic(api_key=api_key)
-
+# ── JSON parser ────────────────────────────────────────────────────────────────
 
 def _parse_json(raw: str) -> dict[str, Any]:
     """
@@ -85,47 +81,60 @@ def _parse_json(raw: str) -> dict[str, Any]:
         raise ValueError(f"Could not parse JSON from LLM response:\n{raw}")
 
 
+# ── Ollama call helper ─────────────────────────────────────────────────────────
+
+def _chat(system_prompt: str, user_msg: str, max_tokens: int = 600) -> str:
+    """
+    Send a chat request to the local Ollama server.
+    Raises a clear error if Ollama is not running.
+    """
+    try:
+        response = ollama.chat(
+            model=OLLAMA_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": user_msg},
+            ],
+            options={"num_predict": max_tokens},
+        )
+        return response["message"]["content"]
+    except Exception as e:
+        error_str = str(e).lower()
+        if "connection" in error_str or "refused" in error_str:
+            raise ConnectionError(
+                "Cannot connect to Ollama. Make sure it's running:\n"
+                "  ollama serve\n"
+                f"Then check your model is installed: ollama list\n"
+                f"Current model: {OLLAMA_MODEL}"
+            ) from e
+        raise
+
+
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 def explain_concept(topic: str) -> dict[str, Any]:
     """
-    Ask Claude to explain a concept in Hinglish.
+    Ask the local model to explain a concept in Hinglish.
 
     Returns dict with keys:
         speech  → str (Hinglish explanation)
         visual  → dict (title, points[], analogy)
     """
-    client = _get_client()
     user_msg = f"Explain the concept of '{topic}' to grade 6-10 students in Hinglish."
-
-    response = client.messages.create(
-        model="claude-sonnet-4-5",
-        max_tokens=600,
-        system=SYSTEM_EXPLAIN,
-        messages=[{"role": "user", "content": user_msg}],
-    )
-    raw = response.content[0].text
+    raw = _chat(SYSTEM_EXPLAIN, user_msg, max_tokens=600)
     return _parse_json(raw)
 
 
 def generate_quiz(topic: str, n: int = 5) -> dict[str, Any]:
     """
-    Ask Claude to generate N MCQs on a topic in Hinglish.
+    Ask the local model to generate N MCQs on a topic in Hinglish.
 
     Returns dict with key:
         questions → list of dicts (q, options[], answer, explanation, speech)
     """
-    client = _get_client()
     user_msg = (
         f"Create exactly {n} MCQ questions on the topic '{topic}' "
         f"for grade 6-10 students in Hinglish."
     )
-
-    response = client.messages.create(
-        model="claude-sonnet-4-5",
-        max_tokens=2000,
-        system=SYSTEM_QUIZ,
-        messages=[{"role": "user", "content": user_msg}],
-    )
-    raw = response.content[0].text
+    raw = _chat(SYSTEM_QUIZ, user_msg, max_tokens=2000)
     return _parse_json(raw)
