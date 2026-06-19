@@ -18,21 +18,77 @@ import streamlit.components.v1 as components
 # ── Browser-based STT (Web Speech API) ─────────────────────────────────────────
 
 SPEECH_RECOGNITION_JS = """
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  #stt-btn {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 36px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0d9488, #059669);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(13,148,136,0.5);
+    letter-spacing: 0.3px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  #stt-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(13,148,136,0.65);
+  }
+  #stt-btn.listening {
+    background: linear-gradient(135deg, #ea580c, #dc2626);
+    box-shadow: 0 4px 20px rgba(234,88,12,0.55);
+    animation: pulse-ring 1.5s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0px rgba(234,88,12,0.55); }
+    70%  { box-shadow: 0 0 0 14px rgba(234,88,12,0); }
+    100% { box-shadow: 0 0 0 0px rgba(234,88,12,0); }
+  }
+  #stt-status {
+    margin-top: 10px;
+    font-size: 0.82rem;
+    letter-spacing: 0.2px;
+    color: #475569;
+    font-family: 'Inter', sans-serif;
+    transition: color 0.3s;
+  }
+  #stt-result {
+    width: 88%;
+    margin-top: 8px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: #e2e8f0;
+    resize: none;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
+  }
+</style>
+
 <script>
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if (!SpeechRecognition) {
-    document.getElementById('stt-status').innerText = 'Your browser does not support Speech Recognition. Please use Chrome or Edge.';
+    document.getElementById('stt-status').innerText = 'Browser not supported. Use Chrome or Edge.';
+    document.getElementById('stt-status').style.color = '#f87171';
 } else {
     const recognition = new SpeechRecognition();
-    recognition.lang = 'hi-IN';          // Hindi — also picks up Hinglish well
+    recognition.lang = 'hi-IN';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
     recognition.continuous = false;
 
-    const statusEl  = document.getElementById('stt-status');
-    const resultEl  = document.getElementById('stt-result');
-    const btn       = document.getElementById('stt-btn');
+    const statusEl = document.getElementById('stt-status');
+    const resultEl = document.getElementById('stt-result');
+    const btn      = document.getElementById('stt-btn');
 
     let isListening = false;
 
@@ -43,50 +99,48 @@ if (!SpeechRecognition) {
         }
         recognition.start();
         isListening = true;
-        btn.innerText = 'Stop Listening';
-        statusEl.innerText = 'Listening...';
+        btn.innerHTML = '&#9209; Stop Listening';
+        btn.classList.add('listening');
+        statusEl.innerText = 'Listening\u2026';
+        statusEl.style.color = '#f87171';
     });
 
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         resultEl.value = transcript;
-        statusEl.innerText = 'Processing...';
+        statusEl.innerText = '\u2705 Got it! Sending\u2026';
+        statusEl.style.color = '#6ee7b7';
 
-        // Navigate the parent Streamlit page so query params include the transcript.
-        // Using window.parent ensures we update the top-level page, not just the iframe.
         const url = new URL(window.parent.location.href);
         url.searchParams.set('transcript', transcript);
         window.parent.location.href = url.toString();
     };
 
     recognition.onerror = (event) => {
-        statusEl.innerText = 'Error: ' + event.error;
+        statusEl.innerText = '\u26a0 Error: ' + event.error;
+        statusEl.style.color = '#fbbf24';
         isListening = false;
-        btn.innerText = 'Start Listening';
+        btn.innerHTML = '\ud83c\udfa4 Start Listening';
+        btn.classList.remove('listening');
     };
 
     recognition.onend = () => {
         isListening = false;
-        btn.innerText = 'Start Listening';
-        statusEl.innerText = 'Click to speak again.';
+        btn.innerHTML = '\ud83c\udfa4 Start Listening';
+        btn.classList.remove('listening');
+        if (!resultEl.value) {
+            statusEl.innerText = 'Click to speak again.';
+            statusEl.style.color = '#475569';
+        }
     };
 }
 </script>
 
-<div style="text-align:center; font-family:sans-serif;">
-  <button id="stt-btn"
-    style="font-size:1.4rem; padding:14px 28px; border-radius:12px;
-           background:#FF4B4B; color:white; border:none; cursor:pointer;
-           box-shadow:0 4px 15px rgba(255,75,75,0.4);">
-    Start Listening
-  </button>
-  <p id="stt-status" style="margin-top:10px; color:#aaa; font-size:0.9rem;">
-    Click the button and speak in Hindi or Hinglish.
-  </p>
+<div style="text-align:center; padding: 0.5rem 0;">
+  <button id="stt-btn">&#127908; Start Listening</button>
+  <p id="stt-status">Click and speak in Hindi or Hinglish</p>
   <textarea id="stt-result" rows="2"
-    style="width:90%; margin-top:8px; font-size:1rem; border-radius:8px;
-           padding:8px; border:1px solid #444; background:#111; color:#eee;"
-    placeholder="Your speech will appear here..." readonly></textarea>
+    placeholder="Your speech will appear here\u2026" readonly></textarea>
 </div>
 """
 
@@ -96,11 +150,10 @@ def render_browser_stt() -> str | None:
     Renders the Web Speech API component in Streamlit.
     Returns the transcript string if captured via query params, else None.
     """
-    # Check if a transcript was submitted via query params
     params = st.query_params
     transcript = params.get("transcript", None)
 
-    components.html(SPEECH_RECOGNITION_JS, height=180)
+    components.html(SPEECH_RECOGNITION_JS, height=190)
 
     return transcript
 
