@@ -40,14 +40,14 @@ SPEECH_RECOGNITION_JS = """
     box-shadow: 0 8px 30px rgba(13,148,136,0.65);
   }
   #stt-btn.listening {
-    background: linear-gradient(135deg, #ea580c, #dc2626);
-    box-shadow: 0 4px 20px rgba(234,88,12,0.55);
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    box-shadow: 0 4px 20px rgba(79,70,229,0.55);
     animation: pulse-ring 1.5s ease-out infinite;
   }
   @keyframes pulse-ring {
-    0%   { box-shadow: 0 0 0 0px rgba(234,88,12,0.55); }
-    70%  { box-shadow: 0 0 0 14px rgba(234,88,12,0); }
-    100% { box-shadow: 0 0 0 0px rgba(234,88,12,0); }
+    0%   { box-shadow: 0 0 0 0px rgba(79,70,229,0.55); }
+    70%  { box-shadow: 0 0 0 14px rgba(79,70,229,0); }
+    100% { box-shadow: 0 0 0 0px rgba(79,70,229,0); }
   }
   #stt-status {
     margin-top: 10px;
@@ -78,7 +78,7 @@ const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogni
 
 if (!SpeechRecognition) {
     document.getElementById('stt-status').innerText = 'Browser not supported. Use Chrome or Edge.';
-    document.getElementById('stt-status').style.color = '#f87171';
+    document.getElementById('stt-status').style.color = '#a78bfa';
 } else {
     const recognition = new SpeechRecognition();
     recognition.lang = 'hi-IN';
@@ -102,7 +102,7 @@ if (!SpeechRecognition) {
         btn.innerHTML = '&#9209; Stop Listening';
         btn.classList.add('listening');
         statusEl.innerText = 'Listening\u2026';
-        statusEl.style.color = '#f87171';
+        statusEl.style.color = '#a78bfa';
     });
 
     recognition.onresult = (event) => {
@@ -120,13 +120,13 @@ if (!SpeechRecognition) {
         statusEl.innerText = '\u26a0 Error: ' + event.error;
         statusEl.style.color = '#fbbf24';
         isListening = false;
-        btn.innerHTML = '\ud83c\udfa4 Start Listening';
+        btn.innerHTML = '&#127908; Start Listening';
         btn.classList.remove('listening');
     };
 
     recognition.onend = () => {
         isListening = false;
-        btn.innerHTML = '\ud83c\udfa4 Start Listening';
+        btn.innerHTML = '&#127908; Start Listening';
         btn.classList.remove('listening');
         if (!resultEl.value) {
             statusEl.innerText = 'Click to speak again.';
