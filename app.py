@@ -366,27 +366,27 @@ st.markdown("""
 <div class="hero-header">
     <h1 class="hero-logo">🎧 AuralLearn</h1>
     <p class="hero-tagline">Audio-first classroom assistant for Hinglish learners</p>
-    <span class="hero-badge">🇮🇳 Haryana Government Schools · Grades 6–10</span>
+    <span class="hero-badge">Haryana Government Schools · Grades 6–10</span>
 </div>
 
 <div class="steps-row">
     <div class="step-item">
-        <div class="step-circle active">🎤</div>
+        <div class="step-circle active">1</div>
         <div class="step-label">Speak</div>
     </div>
     <div class="step-connector"></div>
     <div class="step-item">
-        <div class="step-circle active">🧠</div>
+        <div class="step-circle active">2</div>
         <div class="step-label">Detect</div>
     </div>
     <div class="step-connector"></div>
     <div class="step-item">
-        <div class="step-circle active">✨</div>
+        <div class="step-circle active">3</div>
         <div class="step-label">Generate</div>
     </div>
     <div class="step-connector"></div>
     <div class="step-item">
-        <div class="step-circle active">🔊</div>
+        <div class="step-circle active">4</div>
         <div class="step-label">Listen</div>
     </div>
 </div>
@@ -395,7 +395,7 @@ st.markdown("""
 # ── STT Input ──────────────────────────────────────────────────────────────────
 
 st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-label">🎙️ Voice Input</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-label">Voice Input</div>', unsafe_allow_html=True)
 
 tab_mic, tab_upload, tab_demo = st.tabs([
     "Microphone (Browser)", "Upload Audio (Whisper)", "Type it (Demo Mode)"
@@ -468,7 +468,7 @@ with tab_demo:
 
 if st.session_state.last_transcript:
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-label">📝 Recognized Text</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Recognized Text</div>', unsafe_allow_html=True)
 
     st.markdown(
         f'<div class="transcript-box">{st.session_state.last_transcript}</div>',
@@ -477,9 +477,9 @@ if st.session_state.last_transcript:
 
     col_gen, col_clear = st.columns([4, 1])
     with col_gen:
-        generate_clicked = st.button("✨ Generate — Explain or Quiz", type="primary", key="btn-generate")
+        generate_clicked = st.button("Generate — Explain or Quiz", type="primary", key="btn-generate")
     with col_clear:
-        if st.button("✕ Clear", key="btn-clear"):
+        if st.button("Clear", key="btn-clear"):
             st.session_state.last_transcript = None
             st.session_state.last_payload = None
             st.rerun()
@@ -509,7 +509,7 @@ if st.session_state.last_transcript:
 
                         st.markdown('<div class="fancy-divider"></div>', unsafe_allow_html=True)
                         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-                        st.markdown('<div class="section-label">💡 Explanation</div>', unsafe_allow_html=True)
+                        st.markdown('<div class="section-label">Explanation</div>', unsafe_allow_html=True)
 
                         visual = result.get("visual", {})
                         if visual:
@@ -525,7 +525,7 @@ if st.session_state.last_transcript:
                             analogy = visual.get("analogy")
                             if analogy:
                                 st.markdown(
-                                    f'<div class="analogy-box">💡 <span>{analogy}</span></div>',
+                                    f'<div class="analogy-box"><span>{analogy}</span></div>',
                                     unsafe_allow_html=True,
                                 )
 
@@ -549,7 +549,7 @@ if st.session_state.last_transcript:
                         st.markdown('<div class="fancy-divider"></div>', unsafe_allow_html=True)
                         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
                         st.markdown(
-                            f'<div class="section-label">📝 Quiz — {parsed.topic.title()} &nbsp;·&nbsp; {n} Questions</div>',
+                            f'<div class="section-label">Quiz — {parsed.topic.title()} &nbsp;·&nbsp; {n} Questions</div>',
                             unsafe_allow_html=True,
                         )
 
@@ -568,7 +568,7 @@ if st.session_state.last_transcript:
     <div class="quiz-num">Q{i}</div>
     <div class="quiz-q">{q.get('q', '')}</div>
     {opts_html}
-    <div class="quiz-answer">✅ Answer: {q.get('answer', '')}</div>
+    <div class="quiz-answer">Answer: {q.get('answer', '')}</div>
     {expl_html}
 </div>""", unsafe_allow_html=True)
 
@@ -588,6 +588,6 @@ if st.session_state.last_transcript:
 
 st.markdown("""
 <div style="text-align:center; margin-top:3rem; color:#1e293b; font-size:0.8rem;">
-    AuralLearn · Powered by Ollama · Running locally · No data leaves your machine
+    AuralLearn · Powered by Hugging Face · No data stored
 </div>
 """, unsafe_allow_html=True)
