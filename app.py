@@ -397,7 +397,9 @@ st.markdown("""
 st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 st.markdown('<div class="section-label">🎙️ Voice Input</div>', unsafe_allow_html=True)
 
-tab_mic, tab_upload = st.tabs(["Microphone (Browser)", "Upload Audio (Whisper)"])
+tab_mic, tab_upload, tab_demo = st.tabs([
+    "Microphone (Browser)", "Upload Audio (Whisper)", "Type it (Demo Mode)"
+])
 
 with tab_mic:
     transcript = render_browser_stt()
@@ -426,7 +428,41 @@ with tab_upload:
                     except Exception as e:
                         st.error(f"Whisper transcription failed: {e}")
 
-st.markdown('</div>', unsafe_allow_html=True)
+with tab_demo:
+    st.markdown(
+        '<div style="color:#64748b; font-size:0.85rem; margin-bottom:0.8rem;">'
+        'Type any Hinglish command below — useful for demos and testing without a mic.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    demo_examples = [
+        "samjhao photosynthesis",
+        "quiz lo gravity 3 questions",
+        "samjhao water cycle",
+        "quiz lo human digestive system 5 questions",
+        "batao what is democracy",
+    ]
+    selected = st.selectbox(
+        "Quick examples",
+        ["— pick an example —"] + demo_examples,
+        key="demo-select",
+        label_visibility="collapsed",
+    )
+    typed = st.text_input(
+        "Or type your own command",
+        value=selected if selected != "— pick an example —" else "",
+        placeholder="e.g. samjhao photosynthesis",
+        key="demo-input",
+        label_visibility="collapsed",
+    )
+    if st.button("Use this text", key="btn-demo"):
+        if typed.strip():
+            st.session_state.last_transcript = typed.strip()
+            st.rerun()
+        else:
+            st.warning("Please type or pick a command first.")
+
+
 
 # ── Transcript display ─────────────────────────────────────────────────────────
 
