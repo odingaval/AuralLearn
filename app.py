@@ -442,15 +442,20 @@ with tab_demo:
         "quiz lo human digestive system 5 questions",
         "batao what is democracy",
     ]
+
+    def _sync_demo_input():
+        if st.session_state["demo-select"] != "— pick an example —":
+            st.session_state["demo-input"] = st.session_state["demo-select"]
+
     selected = st.selectbox(
         "Quick examples",
         ["— pick an example —"] + demo_examples,
         key="demo-select",
+        on_change=_sync_demo_input,
         label_visibility="collapsed",
     )
     typed = st.text_input(
         "Or type your own command",
-        value=selected if selected != "— pick an example —" else "",
         placeholder="e.g. samjhao photosynthesis",
         key="demo-input",
         label_visibility="collapsed",
