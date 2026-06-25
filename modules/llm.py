@@ -1,19 +1,23 @@
 """
-llm.py — Hugging Face Inference API integration with Hinglish prompts.
-Handles EXPLAIN and QUIZ intent responses using a free HF-hosted model.
+llm.py — Groq Inference API integration with Hinglish prompts.
+Handles EXPLAIN and QUIZ intent responses using Groq's free-tier API.
+Groq is free, extremely fast, and requires no special permissions.
 """
 
 import json
 import re
 import os
 from typing import Any
-from huggingface_hub import InferenceClient
+from groq import Groq
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ── Model config ───────────────────────────────────────────────────────────────
 
-# Default model — works well for JSON-structured Hinglish output.
-# Override via HF_MODEL env var in your HF Space secrets.
-HF_MODEL = os.getenv("HF_MODEL", "mistralai/Mistral-7B-Instruct-v0.3")
+# Free Groq models — llama-3.1-8b-instant is fast and great for JSON output.
+# Override via GROQ_MODEL env var.
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
 # ── System prompts ─────────────────────────────────────────────────────────────
 
@@ -80,34 +84,42 @@ def _parse_json(raw: str) -> dict[str, Any]:
         raise ValueError(f"Could not parse JSON from LLM response:\n{raw}")
 
 
-# ── HF Inference call helper ───────────────────────────────────────────────────
+# ── Groq chat helper ───────────────────────────────────────────────────────────
 
 def _chat(system_prompt: str, user_msg: str, max_tokens: int = 600) -> str:
     """
-    Send a chat request to the Hugging Face Inference API.
-    Uses HF_TOKEN env var if set (required for gated/private models).
+    Send a chat request to Groq's free inference API.
+    Requires GROQ_API_KEY in .env — get one free at https://console.groq.com
     """
-    token = os.getenv("HF_TOKEN") or None  # None = anonymous (works for public models)
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise PermissionError(
+            "GROQ_API_KEY is missing.\n"
+            "Get a free key at https://console.groq.com and add it to your .env file:\n"
+            "GROQ_API_KEY=gsk_your_key_here"
+        )
+
     try:
-        client = InferenceClient(model=HF_MODEL, token=token)
-        response = client.chat_completion(
+        client = Groq(api_key=api_key)
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_msg},
             ],
             max_tokens=max_tokens,
+            temperature=0.7,
         )
         return response.choices[0].message.content
     except Exception as e:
         error_str = str(e).lower()
-        if "401" in error_str or "unauthorized" in error_str:
+        if "401" in error_str or "invalid api key" in error_str:
             raise PermissionError(
-                "HF model requires authentication.\n"
-                "Set HF_TOKEN in your Space secrets (Settings > Variables and secrets)."
+                "Groq API key is invalid. Check GROQ_API_KEY in your .env file."
             ) from e
-        if "503" in error_str or "loading" in error_str:
+        if "429" in error_str or "rate limit" in error_str:
             raise RuntimeError(
-                f"Model '{HF_MODEL}' is loading on HF servers. Wait 30s and try again."
+                "Groq rate limit hit. Wait a moment and try again."
             ) from e
         raise
 
@@ -116,7 +128,7 @@ def _chat(system_prompt: str, user_msg: str, max_tokens: int = 600) -> str:
 
 def explain_concept(topic: str) -> dict[str, Any]:
     """
-    Ask the HF model to explain a concept in Hinglish.
+    Ask the model to explain a concept in Hinglish.
 
     Returns dict with keys:
         speech  -> str (Hinglish explanation)
@@ -129,7 +141,7 @@ def explain_concept(topic: str) -> dict[str, Any]:
 
 def generate_quiz(topic: str, n: int = 5) -> dict[str, Any]:
     """
-    Ask the HF model to generate N MCQs on a topic in Hinglish.
+    Ask the model to generate N MCQs on a topic in Hinglish.
 
     Returns dict with key:
         questions -> list of dicts (q, options[], answer, explanation, speech)
