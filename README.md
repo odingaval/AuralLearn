@@ -15,15 +15,15 @@ AuralLearn is an **audio-first classroom assistant** built for government school
 ## How It Works
 
 ```
-🎤 Speak (Hindi/Hinglish)
+ Speak (Hindi/Hinglish)
       ↓
-📝 Speech-to-Text (browser mic)
+Speech-to-Text (browser mic)
       ↓
-🧠 Intent detection → EXPLAIN or QUIZ
+Intent detection → EXPLAIN or QUIZ
       ↓
-✨ Fast LLM (Groq) generates Hinglish response
+Fast LLM (Groq) generates Hinglish response
       ↓
-🔊 Text-to-Speech reads the answer aloud
+Text-to-Speech reads the answer aloud
 ```
 
 ## Features
