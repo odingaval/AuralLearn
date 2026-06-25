@@ -10,7 +10,7 @@ pinned: false
 
 # 🎧 AuralLearn
 
-AuralLearn is an **audio-first classroom assistant** built for government schools in Haryana. It lets teachers speak in Hindi or Hinglish to instantly explain concepts or generate quizzes — powered by the Hugging Face Inference API (free, no local GPU needed).
+AuralLearn is an **audio-first classroom assistant** built for government schools in Haryana. It lets teachers speak in Hindi or Hinglish to instantly explain concepts or generate quizzes — powered by the extremely fast and free Groq API.
 
 ## How It Works
 
@@ -21,7 +21,7 @@ AuralLearn is an **audio-first classroom assistant** built for government school
       ↓
 🧠 Intent detection → EXPLAIN or QUIZ
       ↓
-✨ Local LLM (Ollama) generates Hinglish response
+✨ Fast LLM (Groq) generates Hinglish response
       ↓
 🔊 Text-to-Speech reads the answer aloud
 ```
@@ -30,7 +30,7 @@ AuralLearn is an **audio-first classroom assistant** built for government school
 
 - **Live Concept Simplification** — say `samjhao photosynthesis` and get a simple Hinglish explanation with bullet points and an Indian analogy
 - **Voice-Triggered Quizzing** — say `quiz lo gravity 5 questions` and get 5 MCQs with answers and explanations
-- **Fully Offline** — powered by [Ollama](https://ollama.com) running a local 2B model (no Anthropic/OpenAI key needed)
+- **Extremely Fast** — powered by [Groq](https://groq.com) running Llama 3 models (no Anthropic/OpenAI key needed)
 - **Hinglish UI** — designed for grades 6–10, with natural Hindi–English mix in all responses
 - **Audio playback** — responses are read aloud via `edge-tts`
 
@@ -42,22 +42,17 @@ AuralLearn/
 ├── requirements.txt
 └── modules/
     ├── intent.py           # Detects EXPLAIN vs QUIZ intent from Hinglish speech
-    ├── llm.py              # Ollama local LLM integration (explain + quiz generation)
+    ├── llm.py              # Groq API integration (explain + quiz generation)
     ├── stt.py              # Speech-to-Text via browser Web Speech API + Whisper fallback
     └── tts.py              # Text-to-Speech via edge-tts (gTTS fallback)
 ```
 
 ## Getting Started
 
-### 1. Install Ollama and pull a model
+### 1. Get a Groq API Key
 
-```bash
-# Install Ollama (if not already installed)
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull the 2B model (or any model you prefer)
-ollama pull gemma3:2b
-```
+1. Go to [console.groq.com](https://console.groq.com) and sign up for a free account.
+2. Generate an API key (starts with `gsk_`).
 
 ### 2. Clone and set up the project
 
@@ -72,21 +67,18 @@ pip install -r requirements.txt
 
 ### 3. (Optional) Configure your model
 
-By default the app uses `gemma3:2b`. To use a different model, add a `.env` file:
+By default the app uses `llama-3.1-8b-instant`. Add your API key in a `.env` file:
 
 ```bash
 # .env
-OLLAMA_MODEL=llama3.2:1b        # or any model from `ollama list`
-OPENAI_API_KEY=sk-...           # only needed for the Whisper audio upload tab
+GROQ_API_KEY=gsk_your_key_here
+GROQ_MODEL=llama-3.1-8b-instant  # optional, default is already llama-3.1-8b-instant
+OPENAI_API_KEY=sk-...            # only needed for the Whisper audio upload tab
 ```
 
 ### 4. Run the app
 
 ```bash
-# Terminal 1 — start Ollama
-ollama serve
-
-# Terminal 2 — start the app
 source venv/bin/activate
 streamlit run app.py
 ```
@@ -111,9 +103,9 @@ Open **http://localhost:8501** in Chrome or Edge.
 - Extracts topic and number of questions (`n_questions`, default 5, capped at 10)
 
 ### `modules/llm.py`
-- Calls the local Ollama server via the `ollama` Python library
+- Calls the blazing fast Groq server via the `groq` Python library
 - Uses structured JSON prompts to ensure consistent output format
-- Gracefully raises a `ConnectionError` if Ollama is not running
+- Gracefully handles API rate limits or missing keys
 
 ### `modules/stt.py`
 - **Primary:** Browser Web Speech API injected via Streamlit HTML component (`lang='hi-IN'`)
@@ -128,7 +120,7 @@ Open **http://localhost:8501** in Chrome or Edge.
 | Package | Purpose |
 |---|---|
 | `streamlit` | Web UI framework |
-| `ollama` | Local LLM client (replaces Anthropic) |
+| `groq` | Cloud LLM client |
 | `edge-tts` | Primary TTS engine |
 | `gTTS` | TTS fallback |
 | `openai` | Whisper audio upload fallback only |
@@ -137,6 +129,5 @@ Open **http://localhost:8501** in Chrome or Edge.
 ## Requirements
 
 - Python 3.10+
-- [Ollama](https://ollama.com) installed and running
+- A free [Groq API Key](https://console.groq.com)
 - Chrome or Edge browser (for microphone STT)
-- Any Ollama-compatible model installed (e.g. `gemma3:2b`, `llama3.2:1b`)
